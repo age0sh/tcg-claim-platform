@@ -32,7 +32,7 @@ export default function ClaimsView({ cartas, socket, userId }) {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "30px", justifyItems: "center" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "30px", justifyItems: "center" }}>
             {sellerCards.map((carta) => (
               <Card key={carta.id} data={carta} socket={socket} userId={userId} />
             ))}

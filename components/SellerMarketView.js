@@ -12,11 +12,9 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
   const [formPrice, setFormPrice] = useState("");
   const [formLang, setFormLang] = useState("ES 🇪🇸");
   const [formStock, setFormStock] = useState(1);
-  
-  // 🔥 Valores iniciales actualizados
   const [formRarity, setFormRarity] = useState("C");
   const [formCategory, setFormCategory] = useState("Pokemon");
-  const [formSet, setFormSet] = useState("SVI");
+  const [formSet, setFormSet] = useState("SVI"); 
 
   useEffect(() => {
     socket.on("pedidos-actualizados", (data) => {
@@ -81,19 +79,29 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
   return (
     <div style={{ maxWidth: "900px", margin: "0 auto" }}>
       
-      {/* Sub-Menú */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "30px", borderBottom: "1px solid #333", paddingBottom: "10px" }}>
-        <button onClick={() => setActiveTab("borradores")} style={{ background: activeTab === "borradores" ? "#3498db" : "#222", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>📝 Borradores ({drafts.length})</button>
-        <button onClick={() => setActiveTab("envivo")} style={{ background: activeTab === "envivo" ? "#e74c3c" : "#222", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>🔴 En Vivo ({misCartasPublicadas.length})</button>
-        <button onClick={() => setActiveTab("pedidos")} style={{ background: activeTab === "pedidos" ? "#2ecc71" : "#222", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>📦 Mis Pedidos ({pedidos.length})</button>
+      {/* Sub-Menú Adaptativo */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "30px", borderBottom: "1px solid #333", paddingBottom: "10px" }}>
+        <button onClick={() => setActiveTab("borradores")} style={{ background: activeTab === "borradores" ? "#3498db" : "#222", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", flex: "1 1 auto" }}>📝 Borradores ({drafts.length})</button>
+        <button onClick={() => setActiveTab("envivo")} style={{ background: activeTab === "envivo" ? "#e74c3c" : "#222", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", flex: "1 1 auto" }}>🔴 En Vivo ({misCartasPublicadas.length})</button>
+        <button onClick={() => setActiveTab("pedidos")} style={{ background: activeTab === "pedidos" ? "#2ecc71" : "#222", color: "white", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", flex: "1 1 auto" }}>📦 Mis Pedidos ({pedidos.length})</button>
       </div>
 
       {activeTab === "borradores" && (
         <>
           {isCreating ? (
-            <div style={{ background: "#111", padding: "30px", borderRadius: "12px", border: "1px solid #333", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "30px" }}>
+            // 🔥 DISEÑO RESPONSIVO: Cambiamos a flex y flexDirection column
+            <div style={{ 
+              background: "#111", 
+              padding: "20px", 
+              borderRadius: "12px", 
+              border: "1px solid #333", 
+              display: "flex", 
+              flexDirection: "column", 
+              gap: "25px" 
+            }}>
               
-              <div style={{ display: "flex", flexDirection: "column", justifyCenter: "center" }}>
+              {/* Bloque: Foto de la carta */}
+              <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
                 <label style={{ color: "white", fontSize: "14px", marginBottom: "8px", fontWeight: "bold" }}>Imagen TCG</label>
                 <div style={{ height: "220px", background: "#222", border: "2px dashed #444", borderRadius: "8px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "gray", cursor: "pointer" }}>
                   <span style={{ fontSize: "28px" }}>📷</span>
@@ -101,6 +109,7 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
                 </div>
               </div>
 
+              {/* Bloque: Detalles del Anuncio */}
               <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
                 <h3 style={{ color: "#3498db", margin: "0 0 10px 0" }}>Detalles del Anuncio</h3>
                 
@@ -115,11 +124,11 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
                   </select>
                 </div>
 
-                {/* 🔥 LOS COMBOBOXES ACTUALIZADOS */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                {/* LOS COMBOBOXES ACTUALIZADOS CON DISEÑO FLUIDO */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                   
                   {/* Rareza */}
-                  <div>
+                  <div style={{ flex: "1 1 150px" }}>
                     <label style={{ color: "gray", fontSize: "11px", display: "block", marginBottom: "4px" }}>Rareza</label>
                     <select value={formRarity} onChange={e=>setFormRarity(e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "none", background: "#222", color: "white", outline: "none", fontSize: "12px" }}>
                       <option value="C">C - Common</option>
@@ -142,7 +151,7 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
                   </div>
 
                   {/* Categoría */}
-                  <div>
+                  <div style={{ flex: "1 1 150px" }}>
                     <label style={{ color: "gray", fontSize: "11px", display: "block", marginBottom: "4px" }}>Categoría</label>
                     <select value={formCategory} onChange={e=>setFormCategory(e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "none", background: "#222", color: "white", outline: "none", fontSize: "12px" }}>
                       <option value="Pokemon">Pokemon</option>
@@ -152,12 +161,11 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
                     </select>
                   </div>
 
-{/* Colección */}
-                  <div>
+                  {/* Colección */}
+                  <div style={{ flex: "1 1 200px" }}>
                     <label style={{ color: "gray", fontSize: "11px", display: "block", marginBottom: "4px" }}>Colección</label>
                     <select value={formSet} onChange={e=>setFormSet(e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "none", background: "#222", color: "white", outline: "none", fontSize: "12px" }}>
                       
-                      {/* Grupo Escarlata y Púrpura */}
                       <optgroup label="Escarlata y Púrpura" style={{ color: "#e74c3c" }}>
                         <option value="SVI">SVI - Scarlet & Violet</option>
                         <option value="PAL">PAL - Paldea Evolved</option>
@@ -178,7 +186,6 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
                         <option value="SVP">SVP - Scarlet & Violet Promos</option>
                       </optgroup>
 
-                      {/* Grupo Mega Evolution */}
                       <optgroup label="Mega Evolution" style={{ color: "#3498db" }}>
                         <option value="MEG">MEG - Mega Evolution</option>
                         <option value="PFL">PFL - Phantasmal Flames</option>
@@ -197,9 +204,9 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
                   <input type="number" min="1" value={formStock} onChange={e=>setFormStock(e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "none", background: "#222", color: "white", marginTop: "5px", outline: "none" }} />
                 </div>
 
-                <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
-                  <button onClick={() => setIsCreating(false)} style={{ flex: 1, padding: "12px", borderRadius: "6px", border: "1px solid #444", background: "transparent", color: "white", cursor: "pointer" }}>Cancelar</button>
-                  <button onClick={handleSaveDraft} style={{ flex: 2, padding: "12px", borderRadius: "6px", border: "none", background: "#3498db", color: "white", cursor: "pointer", fontWeight: "bold" }}>Guardar Borrador</button>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "15px" }}>
+                  <button onClick={() => setIsCreating(false)} style={{ flex: "1 1 100px", padding: "12px", borderRadius: "6px", border: "1px solid #444", background: "transparent", color: "white", cursor: "pointer" }}>Cancelar</button>
+                  <button onClick={handleSaveDraft} style={{ flex: "2 1 200px", padding: "12px", borderRadius: "6px", border: "none", background: "#3498db", color: "white", cursor: "pointer", fontWeight: "bold" }}>Guardar Borrador</button>
                 </div>
               </div>
 
@@ -207,9 +214,9 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
           ) : (
             <div>
               <button onClick={() => setIsCreating(true)} style={{ background: "#2ecc71", color: "white", border: "none", padding: "12px 24px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", marginBottom: "20px" }}>+ Crear Anuncio</button>
-              <div style={{ display: "grid", gap: "15px", marginBottom: "30px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "15px", marginBottom: "30px" }}>
                 {drafts.map(draft => (
-                  <div key={draft.id} onClick={() => toggleSelect(draft.id)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: draft.selected ? "#1a252f" : "#111", border: draft.selected ? "1px solid #3498db" : "1px solid #333", padding: "15px", borderRadius: "8px", cursor: "pointer" }}>
+                  <div key={draft.id} onClick={() => toggleSelect(draft.id)} style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", background: draft.selected ? "#1a252f" : "#111", border: draft.selected ? "1px solid #3498db" : "1px solid #333", padding: "15px", borderRadius: "8px", cursor: "pointer", gap: "10px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
                       <div style={{ width: "20px", height: "20px", borderRadius: "4px", border: "2px solid #3498db", background: draft.selected ? "#3498db" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>{draft.selected && <span style={{ color: "white", fontSize: "14px" }}>✔</span>}</div>
                       <div>
@@ -222,12 +229,12 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
                 ))}
               </div>
               {drafts.length > 0 && (
-                <div style={{ background: "#111", border: "1px solid #333", padding: "20px", borderRadius: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <select value={timer} onChange={(e) => setTimer(e.target.value)} style={{ padding: "8px", borderRadius: "6px", background: "#222", color: "white", border: "1px solid #444", outline: "none" }}>
+                <div style={{ background: "#111", border: "1px solid #333", padding: "20px", borderRadius: "12px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "15px" }}>
+                  <select value={timer} onChange={(e) => setTimer(e.target.value)} style={{ flex: "1 1 auto", padding: "10px", borderRadius: "6px", background: "#222", color: "white", border: "1px solid #444", outline: "none" }}>
                     <option value="0">Publicación Inmediata</option>
                     <option value="10">Temporizador 10s</option>
                   </select>
-                  <button onClick={handlePublish} style={{ background: "#e74c3c", color: "white", border: "none", padding: "12px 24px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>🚀 Publicar al Mercado</button>
+                  <button onClick={handlePublish} style={{ flex: "1 1 auto", background: "#e74c3c", color: "white", border: "none", padding: "12px 24px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>🚀 Publicar al Mercado</button>
                 </div>
               )}
             </div>
@@ -242,14 +249,16 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
             <p style={{ color: "gray", textAlign: "center" }}>No tienes cartas publicadas activas.</p>
           ) : (
             <>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", background: "#1a1a1a", padding: "20px", borderRadius: "12px", border: "1px solid #e74c3c" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", background: "#1a1a1a", padding: "20px", borderRadius: "12px", border: "1px solid #e74c3c", gap: "15px" }}>
                 <div>
                   <h3 style={{ margin: "0 0 5px 0", color: "white" }}>Subasta de Lote Activo</h3>
                   <p style={{ margin: 0, color: "gray", fontSize: "14px" }}>Recibiendo peticiones para {misCartasPublicadas.length} cartas.</p>
                 </div>
-                <button onClick={handleTerminarClaim} style={{ background: "#e74c3c", color: "white", border: "none", padding: "12px 24px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>🛑 Terminar Lote</button>
+                <button onClick={handleTerminarClaim} style={{ flex: "1 1 auto", maxWidth: "200px", background: "#e74c3c", color: "white", border: "none", padding: "12px 24px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>🛑 Terminar Lote</button>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "15px" }}>
+              
+              {/* 🔥 DISEÑO RESPONSIVO: Las cartas se acomodan según la pantalla */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "15px" }}>
                 {misCartasPublicadas.map(carta => (
                   <div key={carta.id} style={{ background: "#111", padding: "15px", borderRadius: "8px", border: "1px solid #333" }}>
                     <div style={{ color: "white", fontWeight: "bold" }}>{carta.name} <span style={{ color: "gray", fontSize: "12px" }}>({carta.set})</span></div>
@@ -270,7 +279,7 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {pedidos.map(pedido => (
             <div key={pedido.id} style={{ background: "#111", padding: "20px", borderRadius: "12px", border: "1px solid #333" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #222", paddingBottom: "15px", marginBottom: "15px" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", borderBottom: "1px solid #222", paddingBottom: "15px", marginBottom: "15px", gap: "10px" }}>
                 <div>
                   <h3 style={{ color: "#3498db", margin: "0 0 4px 0" }}>Ganador: {pedido.buyerName}</h3>
                   <span style={{ color: "gray", fontSize: "11px" }}>Recibo: {pedido.id}</span>
@@ -279,9 +288,9 @@ export default function SellerMarketView({ socket, userId, mercado = {} }) {
                   <div style={{ fontSize: "22px", color: "#2ecc71", fontWeight: "bold" }}>${pedido.total} MXN</div>
                 </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#ccc", fontSize: "13px" }}><strong>Cartas ganadas:</strong> {pedido.items.join(", ")}</div>
-                <select value={pedido.status} onChange={(e) => handleChangeStatus(pedido.id, e.target.value)} style={{ padding: "8px", borderRadius: "6px", background: pedido.status === "Entregado ✅" ? "#27ae60" : "#f39c12", color: "white", border: "none", fontWeight: "bold", cursor: "pointer" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "15px" }}>
+                <div style={{ color: "#ccc", fontSize: "13px", flex: "1 1 100%" }}><strong>Cartas ganadas:</strong> {pedido.items.join(", ")}</div>
+                <select value={pedido.status} onChange={(e) => handleChangeStatus(pedido.id, e.target.value)} style={{ padding: "8px", borderRadius: "6px", background: pedido.status === "Entregado ✅" ? "#27ae60" : "#f39c12", color: "white", border: "none", fontWeight: "bold", cursor: "pointer", width: "100%", maxWidth: "150px" }}>
                   <option value="Pendiente 📦">Pendiente 📦</option>
                   <option value="En Local 🏪">En Local 🏪</option>
                   <option value="Enviado 🚚">Enviado 🚚</option>

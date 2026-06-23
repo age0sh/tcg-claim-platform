@@ -35,6 +35,7 @@ export default function Home() {
   
   // 🔥 Nuevo estado para el Objeto Usuario (antes era solo userId)
   const [user, setUser] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   
   const [currentTab, setCurrentTab] = useState("inicio");
   const [selectedSeller, setSelectedSeller] = useState(null);
@@ -80,40 +81,73 @@ export default function Home() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#000", fontFamily: "sans-serif" }}>
       
-      {/* Barra de Navegación Principal */}
-      <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px 30px", background: "#111", borderBottom: "1px solid #333" }}>
+{/* Estilos CSS inyectados para el modo responsivo */}
+      <style>{`
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #111; border-bottom: 1px solid #333; position: relative; }
+        .desktop-nav { display: flex; align-items: center; gap: 15px; }
+        .mobile-btn { display: none; background: none; border: none; color: white; font-size: 28px; cursor: pointer; }
+        .mobile-menu { display: none; }
+        
+        /* Reglas para Celular */
+        @media (max-width: 768px) {
+          .desktop-nav { display: none; }
+          .mobile-btn { display: block; }
+          .mobile-menu { 
+            display: flex; flex-direction: column; background: #1a1a1a; 
+            position: absolute; top: 100%; left: 0; right: 0; 
+            padding: 20px; border-bottom: 1px solid #333; z-index: 1000; gap: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+          }
+        }
+      `}</style>
+
+      {/* Barra de Navegación */}
+      <nav className="nav-container">
         <div style={{ color: "#fff", fontWeight: "bold", fontSize: "20px", letterSpacing: "1px" }}>🔥 TCG CLAIM</div>
         
-        <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-          <button onClick={() => handleTabChange("inicio")} style={{ background: "none", border: "none", cursor: "pointer", color: currentTab === "inicio" ? "#3498db" : "gray", fontWeight: currentTab === "inicio" ? "bold" : "normal" }}>Inicio</button>
-          <button onClick={() => handleTabChange("claims")} style={{ background: "none", border: "none", cursor: "pointer", color: currentTab === "claims" ? "#3498db" : "gray", fontWeight: currentTab === "claims" ? "bold" : "normal" }}>Mercado</button>
-          <button onClick={() => handleTabChange("calendar")} style={{ background: "none", border: "none", cursor: "pointer", color: currentTab === "calendar" ? "#3498db" : "gray", fontWeight: currentTab === "calendar" ? "bold" : "normal" }}>Calendario</button>
-          <button onClick={() => handleTabChange("profile")} style={{ background: "none", border: "none", cursor: "pointer", color: currentTab === "profile" ? "#3498db" : "gray", fontWeight: currentTab === "profile" ? "bold" : "normal" }}>Mi Perfil</button>
+        {/* Botón de Hamburguesa (Solo visible en celular) */}
+        <button className="mobile-btn" onClick={() => setMenuOpen(!menuOpen)}>
+          {menuOpen ? "✖" : "☰"}
+        </button>
 
-          {/* Selector de Modo */}
-          <div style={{ marginLeft: "15px", paddingLeft: "15px", borderLeft: "1px solid #333" }}>
-            <select 
-              value={userRole} 
-              onChange={(e) => setUserRole(e.target.value)}
-              style={{ padding: "8px", borderRadius: "6px", background: "#222", color: "#f1c40f", border: "1px solid #444", fontWeight: "bold", cursor: "pointer", outline: "none" }}
-            >
-              <option value="comprador">🛒 Modo Comprador</option>
-              <option value="vendedor">⭐ Modo Vendedor</option>
+        {/* Menú de Escritorio */}
+        <div className="desktop-nav">
+          <button onClick={() => { handleTabChange("inicio"); setMenuOpen(false); }} style={{ background: "none", border: "none", cursor: "pointer", color: currentTab === "inicio" ? "#3498db" : "gray", fontWeight: currentTab === "inicio" ? "bold" : "normal" }}>Inicio</button>
+          <button onClick={() => { handleTabChange("claims"); setMenuOpen(false); }} style={{ background: "none", border: "none", cursor: "pointer", color: currentTab === "claims" ? "#3498db" : "gray", fontWeight: currentTab === "claims" ? "bold" : "normal" }}>Mercado</button>
+          <button onClick={() => { handleTabChange("calendar"); setMenuOpen(false); }} style={{ background: "none", border: "none", cursor: "pointer", color: currentTab === "calendar" ? "#3498db" : "gray", fontWeight: currentTab === "calendar" ? "bold" : "normal" }}>Calendario</button>
+          <button onClick={() => { handleTabChange("profile"); setMenuOpen(false); }} style={{ background: "none", border: "none", cursor: "pointer", color: currentTab === "profile" ? "#3498db" : "gray", fontWeight: currentTab === "profile" ? "bold" : "normal" }}>Mi Perfil</button>
+          
+          <div style={{ paddingLeft: "10px", borderLeft: "1px solid #333" }}>
+            <select value={userRole} onChange={(e) => setUserRole(e.target.value)} style={{ padding: "6px", borderRadius: "6px", background: "#222", color: "#f1c40f", border: "1px solid #444", fontWeight: "bold", cursor: "pointer", outline: "none" }}>
+              <option value="comprador">🛒 Comprador</option>
+              <option value="vendedor">⭐ Vendedor</option>
             </select>
           </div>
-
-          {/* 🔥 Menú del Usuario Actual y Cerrar Sesión */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "15px", paddingLeft: "15px", borderLeft: "1px solid #333" }}>
-            <span style={{ color: "white", fontSize: "14px" }}>Hola, <b>{user.name}</b></span>
-            <button 
-              onClick={handleLogout}
-              style={{ background: "transparent", border: "1px solid #e74c3c", color: "#e74c3c", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "bold" }}
-            >
-              Salir
-            </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", paddingLeft: "10px", borderLeft: "1px solid #333" }}>
+            <span style={{ color: "white", fontSize: "13px" }}><b>{user.name}</b></span>
+            <button onClick={handleLogout} style={{ background: "transparent", border: "1px solid #e74c3c", color: "#e74c3c", padding: "4px 8px", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "bold" }}>Salir</button>
           </div>
-
         </div>
+
+        {/* Menú Desplegable de Celular */}
+        {menuOpen && (
+          <div className="mobile-menu">
+            <button onClick={() => { handleTabChange("inicio"); setMenuOpen(false); }} style={{ background: currentTab === "inicio" ? "#3498db" : "transparent", color: "white", border: "none", padding: "12px", borderRadius: "6px", fontSize: "16px", fontWeight: "bold", textAlign: "center" }}>🏠 Inicio</button>
+            <button onClick={() => { handleTabChange("claims"); setMenuOpen(false); }} style={{ background: currentTab === "claims" ? "#3498db" : "transparent", color: "white", border: "none", padding: "12px", borderRadius: "6px", fontSize: "16px", fontWeight: "bold", textAlign: "center" }}>🔴 Mercado en Vivo</button>
+            <button onClick={() => { handleTabChange("calendar"); setMenuOpen(false); }} style={{ background: currentTab === "calendar" ? "#3498db" : "transparent", color: "white", border: "none", padding: "12px", borderRadius: "6px", fontSize: "16px", fontWeight: "bold", textAlign: "center" }}>📅 Calendario</button>
+            <button onClick={() => { handleTabChange("profile"); setMenuOpen(false); }} style={{ background: currentTab === "profile" ? "#3498db" : "transparent", color: "white", border: "none", padding: "12px", borderRadius: "6px", fontSize: "16px", fontWeight: "bold", textAlign: "center" }}>👤 Mi Perfil</button>
+            
+            <hr style={{ borderColor: "#333", width: "100%", margin: "5px 0" }}/>
+            
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <select value={userRole} onChange={(e) => { setUserRole(e.target.value); setMenuOpen(false); }} style={{ padding: "10px", borderRadius: "6px", background: "#222", color: "#f1c40f", border: "1px solid #444", fontWeight: "bold", width: "60%" }}>
+                <option value="comprador">🛒 Modo Comprador</option>
+                <option value="vendedor">⭐ Modo Vendedor</option>
+              </select>
+              <button onClick={handleLogout} style={{ background: "#e74c3c", color: "white", border: "none", padding: "10px 15px", borderRadius: "6px", fontWeight: "bold" }}>Salir</button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Contenido Dinámico */}
