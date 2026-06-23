@@ -39,11 +39,13 @@ export default function Home() {
   const [currentTab, setCurrentTab] = useState("inicio");
   const [selectedSeller, setSelectedSeller] = useState(null);
   const [userRole, setUserRole] = useState("comprador");
+  const [calendario, setCalendario] = useState({});
 
   // Verificar si ya hay una sesión guardada al cargar la página
   useEffect(() => {
     const storedId = localStorage.getItem("userId");
     const storedName = localStorage.getItem("userName");
+    socket.on("calendario-actualizado", (data) => setCalendario(data));
     
     if (storedId && storedName) {
       setUser({ id: storedId, name: storedName });
@@ -123,8 +125,8 @@ export default function Home() {
         {currentTab === "claims" && userRole === "comprador" && <ClaimsView cartas={cartas} socket={socket} userId={user.id} />}
         {currentTab === "claims" && userRole === "vendedor" && <SellerMarketView socket={socket} userId={user.id} mercado={cartas} />}
         
-        {currentTab === "calendar" && <CalendarView />}
-        {currentTab === "profile" && <ProfileView userId={user.id} />}
+        {currentTab === "calendar" && <CalendarView userId={user.id} userRole={userRole} userName={user.name} socket={socket} calendario={calendario} />}
+        {currentTab === "profile" && <ProfileView userId={user.id} userName={user.name} userRole={userRole} socket={socket} />}
       </main>
 
     </div>

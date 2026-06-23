@@ -1,19 +1,45 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
+// Detecta el puerto que asigna la nube, o usa el 4000 si estás en tu PC
+const PORT = process.env.PORT || 4000;
+
 const httpServer = createServer();
 const io = new Server(httpServer, { cors: { origin: "*" } });
 
 let mercado = {}; 
 let lastClaim = {};
-// 🔥 Nueva base de datos en memoria para los pedidos terminados
 let pedidos = []; 
+// 🔥 Nueva base de datos en memoria para el Calendario
+let dropsAgendados = {};
 
 io.on("connection", (socket) => {
   console.log("Usuario conectado:", socket.id);
   
   socket.emit("estado-inicial", mercado);
   socket.emit("pedidos-actualizados", pedidos);
+  // 🔥 Enviamos el calendario actual al conectarse
+  socket.emit("calendario-actualizado", dropsAgendados);
+
+// 📅 AGENDAR O EDITAR DROP
+  socket.on("agendar-drop", ({ day, seller, sellerId, time, items }) => {
+    // 🛡️ BARRERA DE SEGURIDAD: Si el día ya está ocupado por OTRO vendedor, lo bloqueamos
+    if (dropsAgendados[day] && dropsAgendados[day].sellerId !== sellerId) {
+      return; 
+    }
+    
+    dropsAgendados[day] = { seller, sellerId, time, items };
+    io.emit("calendario-actualizado", dropsAgendados);
+  });
+
+  // 🗑️ CANCELAR DROP
+  socket.on("cancelar-drop", ({ day, sellerId }) => {
+    // Solo borramos si el que lo pide es el dueño real
+    if (dropsAgendados[day] && dropsAgendados[day].sellerId === sellerId) {
+      delete dropsAgendados[day];
+      io.emit("calendario-actualizado", dropsAgendados);
+    }
+  });
 
   // 📦 RECIBIR NUEVAS CARTAS DEL VENDEDOR
   socket.on("publicar-lote", ({ cartas, temporizador, sellerId, sellerName }) => {
@@ -25,6 +51,9 @@ io.on("connection", (socket) => {
         name: carta.name,
         price: carta.price,
         language: carta.lang,
+        rarity: carta.rarity,
+        category: carta.category,
+        set: carta.set,
         sellerId: sellerId,
         sellerName: sellerName || "Vendedor Anónimo",
         stock: parseInt(carta.stock) || 1,
@@ -56,11 +85,10 @@ io.on("connection", (socket) => {
   // 🛑 TERMINAR CLAIM Y GENERAR PEDIDOS
   socket.on("terminar-claim", ({ sellerId }) => {
     const sellerCards = Object.values(mercado).filter(c => c.sellerId === sellerId);
-    let resumenVentas = {}; // Agruparemos por comprador (userId)
+    let resumenVentas = {}; 
 
     sellerCards.forEach(carta => {
       carta.claims.forEach(claim => {
-        // Si es la primera carta que gana este usuario, le creamos su "carrito"
         if (!resumenVentas[claim.userId]) {
           resumenVentas[claim.userId] = {
             id: "PED_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
@@ -72,27 +100,18 @@ io.on("connection", (socket) => {
             status: "Pendiente 📦"
           };
         }
-        
-        // Limpiamos el símbolo de moneda para sumar números reales
         const precioNumerico = parseInt(carta.price.replace(/\D/g, "")) || 0;
-        
         resumenVentas[claim.userId].items.push(carta.name);
         resumenVentas[claim.userId].total += precioNumerico;
       });
-
-      // Eliminamos la carta del mercado público
       delete mercado[carta.id];
     });
 
-    // Guardamos los nuevos pedidos generados
     Object.values(resumenVentas).forEach(pedido => pedidos.push(pedido));
-
-    // Avisamos a todos los clientes que el mercado y los pedidos cambiaron
     io.emit("actualizar", mercado);
     io.emit("pedidos-actualizados", pedidos);
   });
 
-  // 🚚 ACTUALIZAR ESTATUS DEL PEDIDO (Vendedor)
   socket.on("actualizar-estado-pedido", ({ pedidoId, nuevoEstado }) => {
     const pedido = pedidos.find(p => p.id === pedidoId);
     if (pedido) {
@@ -103,9 +122,6 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => console.log("Usuario desconectado:", socket.id));
 });
-
-// Detecta el puerto que asigna la nube, o usa el 4000 si estás en tu PC
-const PORT = process.env.PORT || 4000;
 
 httpServer.listen(PORT, () => {
   console.log(`🚀 Servidor de WebSockets corriendo en el puerto ${PORT}`);
