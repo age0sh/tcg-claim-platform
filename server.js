@@ -21,7 +21,7 @@ io.on("connection", (socket) => {
   // 🔥 Enviamos el calendario actual al conectarse
   socket.emit("calendario-actualizado", dropsAgendados);
 
-// 📅 AGENDAR O EDITAR DROP
+  // 📅 AGENDAR O EDITAR DROP
   socket.on("agendar-drop", ({ day, seller, sellerId, time, items }) => {
     // 🛡️ BARRERA DE SEGURIDAD: Si el día ya está ocupado por OTRO vendedor, lo bloqueamos
     if (dropsAgendados[day] && dropsAgendados[day].sellerId !== sellerId) {
@@ -97,7 +97,10 @@ io.on("connection", (socket) => {
             buyerName: claim.user,
             items: [],
             total: 0,
-            status: "Pendiente 📦"
+            status: "Pendiente 📦",
+            // 🔥 Generamos un código de verificación aleatorio de 4 dígitos
+            pickupCode: Math.floor(1000 + Math.random() * 9000).toString(),
+            rating: null // Para guardar la valoración del comprador después
           };
         }
         const precioNumerico = parseInt(carta.price.replace(/\D/g, "")) || 0;
@@ -112,10 +115,32 @@ io.on("connection", (socket) => {
     io.emit("pedidos-actualizados", pedidos);
   });
 
-  socket.on("actualizar-estado-pedido", ({ pedidoId, nuevoEstado }) => {
+  // 🚚 ACTUALIZAR ESTADO DEL PEDIDO CON VALIDACIÓN DE CÓDIGO
+  socket.on("actualizar-estado-pedido", ({ pedidoId, nuevoEstado, codigoVerificacion }) => {
     const pedido = pedidos.find(p => p.id === pedidoId);
     if (pedido) {
-      pedido.status = nuevoEstado;
+      // 🛡️ Si intentan marcar como entregado, el código DEBE coincidir
+      if (nuevoEstado === "Entregado ✅") {
+        if (pedido.pickupCode === codigoVerificacion) {
+          pedido.status = nuevoEstado;
+          io.emit("pedidos-actualizados", pedidos);
+        } else {
+          // Si el código falla, le avisamos exclusivamente al vendedor que falló
+          socket.emit("error-logistica", "El código de verificación es incorrecto. No se pudo entregar.");
+        }
+      } else {
+        // Para cualquier otro estado (Enviado, Listo en local), cambia directo sin código
+        pedido.status = nuevoEstado;
+        io.emit("pedidos-actualizados", pedidos);
+      }
+    }
+  });
+
+  // ⭐ GUARDAR VALORACIÓN DEL VENDEDOR
+  socket.on("valorar-pedido", ({ pedidoId, estrellas }) => {
+    const pedido = pedidos.find(p => p.id === pedidoId);
+    if (pedido && pedido.status === "Entregado ✅") {
+      pedido.rating = estrellas;
       io.emit("pedidos-actualizados", pedidos);
     }
   });

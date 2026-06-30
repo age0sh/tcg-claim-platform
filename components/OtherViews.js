@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 
+// ======================================================
+// 1. VISTA DEL CALENDARIO DE DROPS (RESPONSIVO)
+// ======================================================
 export function CalendarView({ userId, userRole, userName, socket, calendario }) {
   const [hoveredDay, setHoveredDay] = useState(null);
   const days = Array.from({ length: 30 }, (_, i) => i + 1);
@@ -53,7 +56,7 @@ export function CalendarView({ userId, userRole, userName, socket, calendario })
         </p>
       </div>
 
-      {/* 🔥 Contenedor Responsivo: Centrado y deslizable en móvil */}
+      {/* Contenedor Responsivo: Centrado y deslizable en móvil */}
       <div style={{ width: "100%", overflowX: "auto", paddingBottom: "15px", display: "flex", justifyContent: "center" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(45px, 1fr))", gap: "8px", minWidth: "340px", width: "100%" }}>
           {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
@@ -73,7 +76,7 @@ export function CalendarView({ userId, userRole, userName, socket, calendario })
                 onClick={() => handleDayClick(day)}
                 style={{ 
                   position: "relative", 
-                  minHeight: "80px", // Reducido para móvil
+                  minHeight: "80px", 
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
@@ -101,7 +104,7 @@ export function CalendarView({ userId, userRole, userName, socket, calendario })
         </div>
       </div>
 
-      {/* Modal de Reserva (sin cambios) */}
+      {/* Modal de Reserva */}
       {selectedDay && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, backdropFilter: "blur(3px)", padding: "20px" }}>
           <div style={{ background: "#111", padding: "30px", borderRadius: "12px", border: "1px solid #333", width: "100%", maxWidth: "350px" }}>
@@ -131,139 +134,91 @@ export function CalendarView({ userId, userRole, userName, socket, calendario })
     </div>
   );
 }
-// 🔥 VISTA DE PERFIL AVANZADA (Comprador vs Vendedor)
-export function ProfileView({ userId, userName, userRole, socket }) {
-  const [description, setDescription] = useState("¡Bienvenido a mi espacio TCG! Coleccionista y vendedor apasionado de expansiones clásicas y modernas.");
-  const [isEditingDesc, setIsEditingDesc] = useState(false);
-  const [misComprasHistorial, setMisComprasHistorial] = useState([]);
 
-  // Escuchar el historial de compras real desde los sockets
-  useEffect(() => {
-    if (socket) {
-      socket.on("pedidos-actualizados", (data) => {
-        // Si soy comprador, filtro los recibos donde yo gané
-        setMisComprasHistorial(data.filter(p => p.buyerId === userId));
-      });
-    }
-    return () => { if (socket) socket.off("pedidos-actualizados"); };
-  }, [socket, userId]);
+// ======================================================
+// 2. VISTA DE PERFIL DINÁMICA (UNIFICADA)
+// ======================================================
+export function ProfileView({ userId, userName, userRole, pedidos = [] }) {
+  const isSeller = userRole === "vendedor";
 
-  // 🔥 Mock de cartas para presumir en el Mostrador (3 Espacios)
-  const cartasMostrador = [
-    { name: "Charizard Gold Star", rarity: "ALTERNATIVE FA", set: "POR" },
-    { name: "Umbreon VMAX", rarity: "FA", set: "MEG" },
-    { name: "Pikachu Illustrator", rarity: "FOIL", set: "PROMO" }
-  ];
+  // 1. Filtramos los pedidos donde participaste (como vendedor o comprador)
+  const misOperaciones = pedidos.filter(p => isSeller ? p.sellerId === userId : p.buyerId === userId);
+  
+  // 2. Filtramos SOLO los que ya se entregaron (validación física exitosa con el PIN)
+  const operacionesCompletadas = misOperaciones.filter(p => p.status === "Entregado ✅");
 
-  // ======================================================
-  // VISTA DE PERFIL EN MODO VENDEDOR
-  // ======================================================
-  if (userRole === "vendedor") {
-    return (
-      <div style={{ color: "white", maxWidth: "800px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "25px" }}>
-        <div style={{ background: "#111", padding: "30px", borderRadius: "12px", border: "1px solid #333" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "25px" }}>
-            <div style={{ width: "70px", height: "70px", borderRadius: "50%", background: "#f1c40f", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px", fontWeight: "bold", color: "black" }}>
-              {userName.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h2 style={{ margin: "0 0 5px 0" }}>Tienda Oficial: {userName}</h2>
-              <span style={{ color: "#2ecc71", fontSize: "14px", fontWeight: "bold" }}>⭐ Vendedor Verificado</span>
-            </div>
-          </div>
+  // 3. Cálculos matemáticos dinámicos
+  const totalCartas = operacionesCompletadas.reduce((acc, p) => acc + p.items.length, 0);
+  const volumenDinero = operacionesCompletadas.reduce((acc, p) => acc + p.total, 0);
 
-          {/* Textbox/Textarea para la descripción */}
-          <div style={{ background: "#1a1a1a", padding: "20px", borderRadius: "8px", border: "1px solid #222" }}>
-            <h4 style={{ margin: "0 0 10px 0", color: "#3498db" }}>Presentación de la Tienda</h4>
-            {isEditingDesc ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <textarea 
-                  value={description} 
-                  onChange={(e) => setDescription(e.target.value)}
-                  style={{ width: "100%", height: "80px", background: "#000", color: "white", border: "1px solid #444", borderRadius: "6px", padding: "10px", resize: "none", outline: "none", fontFamily: "sans-serif" }}
-                />
-                <button onClick={() => setIsEditingDesc(false)} style={{ alignSelf: "flex-end", background: "#2ecc71", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>Guardar Biografía</button>
-              </div>
-            ) : (
-              <div>
-                <p style={{ color: "#ccc", margin: "0 0 12px 0", lineHeight: "1.5", fontSize: "14px" }}>{description}</p>
-                <button onClick={() => setIsEditingDesc(true)} style={{ background: "transparent", border: "1px solid #444", color: "gray", padding: "6px 12px", borderRadius: "6px", fontSize: "12px", cursor: "pointer", transition: "all 0.2s" }} onMouseOver={e=>e.target.style.borderColor="#3498db"} onMouseOut={e=>e.target.style.borderColor="#444"}>Editar Presentación</button>
-              </div>
-            )}
-          </div>
-        </div>
+  // 4. Calificaciones (Solo calcula si la cuenta es de vendedor)
+  const valoraciones = operacionesCompletadas.map(p => p.rating).filter(r => r !== null);
+  const promedio = valoraciones.length > 0 ? (valoraciones.reduce((a, b) => a + b, 0) / valoraciones.length).toFixed(1) : "N/A";
 
-        {/* Panel de Estadísticas de Venta */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "20px" }}>
-          <div style={{ background: "#111", padding: "20px", borderRadius: "12px", border: "1px solid #333", textAlign: "center" }}>
-            <span style={{ color: "gray", fontSize: "12px" }}>Volumen de Venta</span>
-            <div style={{ fontSize: "26px", fontWeight: "bold", color: "#2ecc71", marginTop: "5px" }}>$8,400 MXN</div>
-          </div>
-          <div style={{ background: "#111", padding: "20px", borderRadius: "12px", border: "1px solid #333", textAlign: "center" }}>
-            <span style={{ color: "gray", fontSize: "12px" }}>Calificación General</span>
-            <div style={{ fontSize: "26px", fontWeight: "bold", color: "#f1c40f", marginTop: "5px" }}>⭐ 5.0 / 5.0</div>
-          </div>
-          <div style={{ background: "#111", padding: "20px", borderRadius: "12px", border: "1px solid #333", textAlign: "center" }}>
-            <span style={{ color: "gray", fontSize: "12px" }}>Porcentaje Cancelaciones</span>
-            <div style={{ fontSize: "26px", fontWeight: "bold", color: "#e74c3c", marginTop: "5px" }}>0% 🔥</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ======================================================
-  // VISTA DE PERFIL EN MODO COMPRADOR
-  // ======================================================
   return (
-    <div style={{ color: "white", maxWidth: "800px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "30px" }}>
-      {/* Cabecera del Comprador */}
-      <div style={{ background: "#111", padding: "25px", borderRadius: "12px", border: "1px solid #333", display: "flex", alignItems: "center", gap: "20px" }}>
-        <div style={{ width: "65px", height: "65px", borderRadius: "50%", background: "#3498db", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", fontWeight: "bold" }}>
-          {userName.charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <h2 style={{ margin: "0 0 5px 0" }}>{userName}</h2>
-          <p style={{ margin: 0, color: "gray", fontSize: "13px" }}>ID de Cuenta: {userId.substring(0, 12)}...</p>
-        </div>
+    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "20px", color: "white" }}>
+      
+      {/* HEADER DEL PERFIL */}
+      <div style={{ background: "#111", padding: "30px", borderRadius: "12px", border: "1px solid #333", display: "flex", alignItems: "center", gap: "20px", marginBottom: "20px" }}>
+         <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: isSeller ? "#e74c3c" : "#3498db", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px", fontWeight: "bold" }}>
+            {userName.charAt(0).toUpperCase()}
+         </div>
+         <div>
+            <h1 style={{ margin: "0 0 5px 0", color: "#fff" }}>{userName}</h1>
+            <span style={{ padding: "4px 10px", background: "#222", borderRadius: "6px", color: isSeller ? "#f1c40f" : "#3498db", fontSize: "12px", fontWeight: "bold", border: "1px solid #333" }}>
+              {isSeller ? "⭐ Cuenta de Vendedor" : "🛒 Cuenta de Comprador"}
+            </span>
+         </div>
       </div>
 
-      {/* 🎴 MOSTRADOR PERSONAL (Para presumir 3 cartas superiores) */}
-      <div style={{ background: "#111", padding: "25px", borderRadius: "12px", border: "1px solid #333" }}>
-        <h3 style={{ margin: "0 0 20px 0", color: "#f1c40f", display: "flex", alignItems: "center", gap: "10px" }}>🏆 Mi Mostrador Personal</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "20px" }}>
-          {cartasMostrador.map((carta, index) => (
-            <div key={index} style={{ background: "#1a1a1a", border: "1px dashed #444", padding: "20px", borderRadius: "8px", textAlign: "center", position: "relative" }}>
-              <div style={{ fontSize: "28px", marginBottom: "8px" }}>🎴</div>
-              <div style={{ fontWeight: "bold", fontSize: "14px", marginBottom: "4px", color: "#fff" }}>{carta.name}</div>
-              <div style={{ fontSize: "11px", color: "#3498db", fontWeight: "bold" }}>{carta.rarity}</div>
-              <div style={{ position: "absolute", bottom: "8px", right: "8px", background: "#000", padding: "2px 6px", borderRadius: "4px", fontSize: "10px", color: "gray", border: "1px solid #222" }}>{carta.set}</div>
-            </div>
-          ))}
+      <h2 style={{ color: "#3498db", margin: "30px 0 15px 0" }}>📊 {isSeller ? "Rendimiento de Ventas" : "Historial de Adquisiciones"}</h2>
+
+      {/* CUADRÍCULA DE ESTADÍSTICAS REALES */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "15px" }}>
+        
+        {/* Métrica 1: Dinero */}
+        <div style={{ background: "#1a1a1a", padding: "20px", borderRadius: "12px", border: "1px solid #222", textAlign: "center" }}>
+          <div style={{ fontSize: "13px", color: "gray", marginBottom: "5px" }}>{isSeller ? "Ingresos Totales" : "Gastos Totales"}</div>
+          <div style={{ fontSize: "28px", color: "#2ecc71", fontWeight: "bold" }}>
+            ${volumenDinero} <span style={{fontSize: "14px"}}>MXN</span>
+          </div>
         </div>
+
+        {/* Métrica 2: Cartas Físicas */}
+        <div style={{ background: "#1a1a1a", padding: "20px", borderRadius: "12px", border: "1px solid #222", textAlign: "center" }}>
+          <div style={{ fontSize: "13px", color: "gray", marginBottom: "5px" }}>Cartas {isSeller ? "Entregadas" : "Recibidas"}</div>
+          <div style={{ fontSize: "28px", color: "#3498db", fontWeight: "bold" }}>{totalCartas}</div>
+        </div>
+
+        {/* Métricas exclusivas para Vendedores */}
+        {isSeller && (
+          <>
+            <div style={{ background: "#1a1a1a", padding: "20px", borderRadius: "12px", border: "1px solid #222", textAlign: "center" }}>
+              <div style={{ fontSize: "13px", color: "gray", marginBottom: "5px" }}>Calificación Global</div>
+              <div style={{ fontSize: "28px", color: "#f1c40f", fontWeight: "bold" }}>
+                {promedio !== "N/A" ? `⭐ ${promedio}` : "N/A"}
+              </div>
+              <div style={{ fontSize: "11px", color: "gray", marginTop: "5px" }}>
+                ({valoraciones.length} {valoraciones.length === 1 ? "reseña" : "reseñas"})
+              </div>
+            </div>
+
+            <div style={{ background: "#1a1a1a", padding: "20px", borderRadius: "12px", border: "1px solid #222", textAlign: "center" }}>
+              <div style={{ fontSize: "13px", color: "gray", marginBottom: "5px" }}>Cancelaciones</div>
+              <div style={{ fontSize: "28px", color: "#e74c3c", fontWeight: "bold" }}>0%</div>
+              <div style={{ fontSize: "11px", color: "gray", marginTop: "5px" }}>Sin incidencias</div>
+            </div>
+          </>
+        )}
+      </div>
+      
+      {/* Disclaimer de actualización */}
+      <div style={{ marginTop: "20px", background: "#111", padding: "15px", borderRadius: "12px", border: "1px solid #333" }}>
+        <p style={{ color: "gray", fontSize: "13px", margin: 0, textAlign: "center" }}>
+          ℹ️ Las métricas solo se actualizan al validar exitosamente el código de entrega de un lote.
+        </p>
       </div>
 
-      {/* HISTORIAL DE CLAIMS COMPRADAS */}
-      <div style={{ background: "#111", padding: "25px", borderRadius: "12px", border: "1px solid #333" }}>
-        <h3 style={{ margin: "0 0 15px 0", color: "white" }}>📜 Historial de Claims Ganados</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {misComprasHistorial.map((pedido) => (
-            <div key={pedido.id} style={{ background: "#1a1a1a", padding: "15px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid #222" }}>
-              <div>
-                <div style={{ fontWeight: "bold", color: "#fff" }}>{pedido.items.join(", ")}</div>
-                <span style={{ color: "gray", fontSize: "12px" }}>Código Recibo: {pedido.id}</span>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <span style={{ color: "#2ecc71", fontWeight: "bold", display: "block", fontSize: "16px" }}>${pedido.total} MXN</span>
-                <span style={{ background: "#222", padding: "3px 8px", borderRadius: "4px", fontSize: "11px", color: "#aaa" }}>{pedido.status}</span>
-              </div>
-            </div>
-          ))}
-          {misComprasHistorial.length === 0 && (
-            <p style={{ color: "gray", fontSize: "14px", fontStyle: "italic", margin: 0, textAlign: "center", padding: "15px" }}>Aún no has reclamado cartas en esta sesión web pública.</p>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
