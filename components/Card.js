@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 
-export default function Card({ data, socket, userId }) {
+export default function Card({ data, socket, userId, userName }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [timeLeft, setTimeLeft] = useState(0);
@@ -24,13 +24,19 @@ export default function Card({ data, socket, userId }) {
   }, [isExpanded, isLocked, isSoldOut]);
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    const command = inputValue.trim().toLowerCase();
-    if (command === "claim" && !isLocked && !isSoldOut) {
-      socket.emit("claim", { cardId: data.id, userId, clientTime: Date.now() });
-      setInputValue("");
-    }
-  };
+      e.preventDefault();
+      const command = inputValue.trim().toLowerCase();
+      if (command === "claim" && !isLocked && !isSoldOut) {
+        // 🔥 AHORA SÍ ENVIAMOS EL userName AL SERVIDOR
+        socket.emit("claim", { 
+          cardId: data._id || data.id, 
+          userId, 
+          userName, // <-- ¡ESTA ES LA MAGIA QUE FALTABA!
+          clientTime: Date.now() 
+        });
+        setInputValue("");
+      }
+    };
 
   return (
     <div style={{ border: isExpanded ? "2px solid #3498db" : "1px solid #333", padding: "15px", borderRadius: "12px", width: "220px", textAlign: "center", background: isExpanded ? "#1a1a1a" : "#111", color: "white", transition: "all 0.3s ease", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -48,7 +54,8 @@ export default function Card({ data, socket, userId }) {
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#aaa", padding: "0 2px", fontWeight: "bold" }}>
-        <span style={{ color: "#2ecc71" }}>{data.price}</span>
+        {/* Aseguramos que el precio se vea bien aunque venga solo como número de Mongo */}
+        <span style={{ color: "#2ecc71" }}>${data.price} MXN</span>
         <span>{data.language}</span>
       </div>
 
@@ -56,7 +63,8 @@ export default function Card({ data, socket, userId }) {
       <div style={{ display: "flex", gap: "4px", justifyContent: "center", flexWrap: "wrap", fontSize: "10px" }}>
         {data.category && <span style={{ background: "#222", padding: "2px 6px", borderRadius: "4px", color: "#9b59b6", fontWeight: "bold" }}>{data.category}</span>}
         {data.rarity && <span style={{ background: "#222", padding: "2px 6px", borderRadius: "4px", color: "#f1c40f", fontWeight: "bold" }}>{data.rarity}</span>}
-        {data.set && <span style={{ background: "#000", padding: "1px 5px", borderRadius: "4px", color: "#3498db", border: "1px solid #333", fontWeight: "bold" }}>{data.set}</span>}
+        {/* Usamos data.collectionName que es el nuevo nombre en Mongo */}
+        {(data.collectionName || data.set) && <span style={{ background: "#000", padding: "1px 5px", borderRadius: "4px", color: "#3498db", border: "1px solid #333", fontWeight: "bold" }}>{data.collectionName || data.set}</span>}
       </div>
 
       {!isExpanded && (
@@ -70,7 +78,8 @@ export default function Card({ data, socket, userId }) {
           <div style={{ background: "#000", borderRadius: "6px", padding: "8px", minHeight: "70px", display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", textAlign: "left" }}>
             {claims.length === 0 ? (<span style={{ color: "gray", fontStyle: "italic" }}>Esperando claims...</span>) : (
               claims.map((claim, index) => (
-                <div key={claim.id} style={{ display: "flex", justifyContent: "space-between", color: "#2ecc71" }}>
+                // Reparación de la llave en el map
+                <div key={claim._id || claim.id || index} style={{ display: "flex", justifyContent: "space-between", color: "#2ecc71" }}>
                   <span>{index + 1}. {claim.userId === userId ? "Tú" : claim.user}</span>
                   <span>⏱ {claim.time}</span>
                 </div>
