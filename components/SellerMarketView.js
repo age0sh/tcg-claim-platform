@@ -7,7 +7,7 @@ export default function SellerMarketView({ socket, userId, userName, mercado = {
   const [isCreating, setIsCreating] = useState(false);
   const [timer, setTimer] = useState("10");
   const [drafts, setDrafts] = useState([]);
-  
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
   // 🔥 2. BORRAMOS EL const [pedidos, setPedidos] = useState([]); que estaba aquí
 
   // Estados del Formulario
@@ -74,7 +74,7 @@ export default function SellerMarketView({ socket, userId, userName, mercado = {
       const token = localStorage.getItem("tcg_token");
       if (!token) throw new Error("No estás autenticado. Falta el token.");
 
-      const res = await fetch("http://localhost:4000/api/seller/publish-draft", {
+      const res = await fetch(`${BACKEND_URL}/api/seller/publish-draft`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

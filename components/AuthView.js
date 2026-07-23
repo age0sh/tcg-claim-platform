@@ -14,7 +14,7 @@ export default function AuthView({ onLogin }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
-
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
   const isPasswordValid = (pwd) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\d\W]).{8,}$/.test(pwd);
 
   const handleSubmit = async (e) => {
@@ -55,7 +55,7 @@ export default function AuthView({ onLogin }) {
             rol: "comprador"
           };
 
-      const res = await fetch(`http://localhost:4000${endpoint}`, {
+      const res = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bodyData),
