@@ -7,7 +7,7 @@ export default function SellerMarketView({ socket, userId, userName, mercado = {
   const [isCreating, setIsCreating] = useState(false);
   const [timer, setTimer] = useState("10");
   const [drafts, setDrafts] = useState([]);
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://tcg-claim-platform.onrender.com";
   // 🔥 2. BORRAMOS EL const [pedidos, setPedidos] = useState([]); que estaba aquí
 
   // Estados del Formulario
