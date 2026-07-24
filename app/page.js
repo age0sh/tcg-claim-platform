@@ -30,7 +30,7 @@ const NavIcons = {
 function useSocket() {
   const socketRef = useRef(null);
   if (!socketRef.current) {
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://tcg-claim-platform.onrender.com";
     socketRef.current = io(BACKEND_URL);
   }
   return socketRef.current;
