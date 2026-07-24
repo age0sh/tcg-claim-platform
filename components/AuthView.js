@@ -14,7 +14,7 @@ export default function AuthView({ onLogin }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://tcg-claim-platform.onrender.com";
   const isPasswordValid = (pwd) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\d\W]).{8,}$/.test(pwd);
 
   const handleSubmit = async (e) => {
